@@ -58,8 +58,9 @@ pub async fn parse_stats() -> eyre::Result<()> {
     };
 
     let cfg = Config::read_default().await;
-    let allocations = get_stats(&addresses, cfg)
-        .await?
+    let allocations = get_stats(&addresses, cfg).await?;
+    let sum = allocations.iter().sum::<U256>();
+    let allocations = allocations
         .into_iter()
         .map(|alloc| format_units(alloc, 18).unwrap())
         .collect::<Vec<_>>();
@@ -77,7 +78,9 @@ pub async fn parse_stats() -> eyre::Result<()> {
 
     WalletStats::export_stats_to_csv(&table)?;
     let table = Table::new(table);
+    let total = format_units(sum, 18).unwrap();
     println!("{table}");
+    tracing::info!("Total amount: {total}");
 
     Ok(())
 }
